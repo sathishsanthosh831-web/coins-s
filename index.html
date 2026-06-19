@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,21 +15,22 @@
             justify-content: center;
             align-items: center;
             color: white;
+            padding: 20px;
         }
-       .container {
+      .container {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
             max-width: 500px;
-            width: 90%;
+            width: 100%;
             text-align: center;
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
-        h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-       .subtitle { font-size: 0.9em; opacity: 0.8; margin-bottom: 20px; }
-       .menu-screen,.game-screen { display: none; }
-       .menu-screen.active,.game-screen.active { display: block; }
+        h1 { font-size: 2.2em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+      .subtitle { font-size: 0.9em; opacity: 0.8; margin-bottom: 20px; }
+      .menu-screen,.game-screen,.waiting-screen { display: none; }
+      .menu-screen.active,.game-screen.active,.waiting-screen.active { display: block; }
         input {
             width: 100%;
             padding: 15px;
@@ -38,6 +40,7 @@
             font-size: 1.1em;
             text-align: center;
             text-transform: uppercase;
+            letter-spacing: 3px;
         }
         button {
             width: 100%;
@@ -54,76 +57,115 @@
         }
         button:hover { background: #ff5252; transform: translateY(-2px); }
         button:disabled { background: #666; cursor: not-allowed; transform: none; }
-       .room-code {
-            font-size: 2em;
+      .btn-secondary { background: #4ecdc4; }
+      .btn-secondary:hover { background: #45b7b0; }
+      .room-code {
+            font-size: 2.5em;
             font-weight: bold;
-            letter-spacing: 5px;
+            letter-spacing: 8px;
             padding: 20px;
             background: rgba(0,0,0,0.3);
             border-radius: 10px;
             margin: 20px 0;
+            border: 2px dashed rgba(255,255,255,0.3);
         }
-       .status {
+      .status {
             padding: 15px;
             background: rgba(0,0,0,0.2);
             border-radius: 10px;
             margin: 15px 0;
             font-size: 1.1em;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-       .board {
+      .info-box { display: flex; justify-content: space-between; margin: 15px 0; gap: 10px; }
+      .info-item { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; flex: 1; }
+      .info-label { font-size: 0.8em; opacity: 0.7; margin-bottom: 5px; }
+      .info-value { font-size: 1.3em; font-weight: bold; }
+      .board {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 5px;
             margin: 20px auto;
             max-width: 350px;
         }
-       .cell {
+      .cell {
             aspect-ratio: 1;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.15);
             border-radius: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.5em;
+            font-size: 1.8em;
             cursor: pointer;
             transition: all 0.2s;
+            border: 2px solid transparent;
         }
-       .cell:hover { background: rgba(255,255,255,0.3); }
-       .cell.puli { background: #ff6b6b; }
-       .cell.aadu { background: #51cf66; }
-       .cell.selected { box-shadow: 0 0 0 3px yellow; }
-       .info { display: flex; justify-content: space-between; margin: 15px 0; }
-       .info div { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; flex: 1; margin: 0 5px; }
+      .cell:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+      .cell.puli { background: #ff6b6b; }
+      .cell.aadu { background: #51cf66; }
+      .cell.selected { border-color: #ffd700; box-shadow: 0 0 15px #ffd700; }
+      .cell.highlight { background: rgba(255, 215, 0, 0.3); }
+      .copy-btn {
+            background: rgba(255,255,255,0.2);
+            font-size: 0.9em;
+            padding: 10px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🐅 Aadu Puli 🐐</h1>
-        <p class="subtitle">Online Multiplayer</p>
+        <p class="subtitle">Online Multiplayer - V2</p>
 
         <!-- Menu Screen -->
         <div class="menu-screen active" id="menuScreen">
-            <button onclick="createRoom()">Create Room</button>
-            <input type="text" id="joinCode" placeholder="ENTER ROOM CODE" maxlength="6">
-            <button onclick="joinRoom()">Join Room</button>
+            <button onclick="createRoom()">🎮 Create Room</button>
+            <div style="margin: 20px 0; opacity: 0.5;">OR</div>
+            <input type="text" id="joinCode" placeholder="ENTER CODE" maxlength="6">
+            <button class="btn-secondary" onclick="joinRoom()">🚪 Join Room</button>
+        </div>
+
+        <!-- Waiting Screen -->
+        <div class="waiting-screen" id="waitingScreen">
+            <div class="room-code" id="roomCodeDisplay">------</div>
+            <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+            <div class="status" id="waitingStatus">Waiting for player to join...</div>
+            <button class="btn-secondary" onclick="cancelRoom()">Cancel</button>
         </div>
 
         <!-- Game Screen -->
         <div class="game-screen" id="gameScreen">
-            <div class="room-code" id="roomCodeDisplay">------</div>
-            <div class="status" id="statusText">Waiting for player...</div>
-            <div class="info">
-                <div>You: <span id="yourRole">-</span></div>
-                <div>Turn: <span id="turnText">-</span></div>
-            </div>
+            <div class="info-box">
+                <div class="info-item">
+                    <div class="info-label">You Are</div>
+                    <div class="info-value" id="yourRole">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Turn</div>
+                    <div class="info-value" id="turnText">-</div>
+                </div>
+            <div class="status" id="statusText">Game Starting...</div>
             <div class="board" id="board"></div>
-            <button onclick="leaveRoom()">Leave Room</button>
+            <div class="info-box">
+                <div class="info-item">
+                    <div class="info-label">Aadu Placed</div>
+                    <div class="info-value"><span id="aaduCount">0</span>/15</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Room</div>
+                    <div class="info-value" id="roomDisplay">-</div>
+                </div>
+            <button onclick="leaveRoom()">🚪 Leave Room</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getDatabase, ref, set, onValue, update, remove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { getDatabase, ref, set, onValue, update, remove, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAFBQhNDokxJU1JLUEuvBfJdrTT9xy22-e8",
@@ -147,7 +189,7 @@
         window.createRoom = async function() {
             roomId = Math.random().toString(36).substr(2, 6).toUpperCase();
             playerRole = 'puli';
-            
+
             const initialState = {
                 board: Array(49).fill(null),
                 turn: 'puli',
@@ -155,14 +197,20 @@
                     [playerId]: { role: 'puli', joined: Date.now() }
                 },
                 status: 'waiting',
-                aaduPlaced: 0
+                aaduPlaced: 0,
+                createdAt: Date.now()
             };
             initialState.board[0] = 'puli';
             initialState.board[6] = 'puli';
             initialState.board[42] = 'puli';
 
             await set(ref(db, 'rooms/' + roomId), initialState);
-            startGame();
+
+            document.getElementById('menuScreen').classList.remove('active');
+            document.getElementById('waitingScreen').classList.add('active');
+            document.getElementById('roomCodeDisplay').textContent = roomId;
+
+            listenToRoom();
         }
 
         window.joinRoom = async function() {
@@ -171,25 +219,33 @@
                 alert('Enter 6 digit code da');
                 return;
             }
-            
+
+            const roomRef = ref(db, 'rooms/' + code);
+            const snapshot = await get(roomRef);
+
+            if (!snapshot.exists()) {
+                alert('Room not found da! Check code');
+                return;
+            }
+
+            const data = snapshot.val();
+            if (Object.keys(data.players || {}).length >= 2) {
+                alert('Room full da!');
+                return;
+            }
+
             roomId = code;
             playerRole = 'aadu';
-            
-            const roomRef = ref(db, 'rooms/' + roomId);
+
             await update(roomRef, {
                 [`players/${playerId}`]: { role: 'aadu', joined: Date.now() },
                 status: 'playing'
             });
-            
+
             startGame();
         }
 
-        function startGame() {
-            document.getElementById('menuScreen').classList.remove('active');
-            document.getElementById('gameScreen').classList.add('active');
-            document.getElementById('roomCodeDisplay').textContent = roomId;
-            document.getElementById('yourRole').textContent = playerRole === 'puli'? '🐅 Puli' : '🐐 Aadu';
-            
+        function listenToRoom() {
             onValue(ref(db, 'rooms/' + roomId), (snapshot) => {
                 gameState = snapshot.val();
                 if (!gameState) {
@@ -197,19 +253,39 @@
                     location.reload();
                     return;
                 }
-                renderGame();
+
+                const playerCount = Object.keys(gameState.players || {}).length;
+
+                if (gameState.status === 'waiting' && playerCount >= 2) {
+                    document.getElementById('waitingScreen').classList.remove('active');
+                    document.getElementById('gameScreen').classList.add('active');
+                    document.getElementById('roomDisplay').textContent = roomId;
+                    document.getElementById('yourRole').textContent = playerRole === 'puli'? '🐅 Puli' : '🐐 Aadu';
+                }
+
+                if (gameState.status === 'playing') {
+                    renderGame();
+                }
             });
+        }
+
+        function startGame() {
+            document.getElementById('menuScreen').classList.remove('active');
+            document.getElementById('gameScreen').classList.add('active');
+            document.getElementById('roomDisplay').textContent = roomId;
+            document.getElementById('yourRole').textContent = playerRole === 'puli'? '🐅 Puli' : '🐐 Aadu';
+            listenToRoom();
         }
 
         function renderGame() {
             const boardEl = document.getElementById('board');
             boardEl.innerHTML = '';
-            
+
             for (let i = 0; i < 49; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 cell.dataset.index = i;
-                
+
                 if (gameState.board[i] === 'puli') {
                     cell.classList.add('puli');
                     cell.textContent = '🐅';
@@ -217,41 +293,39 @@
                     cell.classList.add('aadu');
                     cell.textContent = '🐐';
                 }
-                
+
                 if (selectedCell === i) cell.classList.add('selected');
                 cell.onclick = () => handleCellClick(i);
                 boardEl.appendChild(cell);
             }
 
             document.getElementById('turnText').textContent = gameState.turn === 'puli'? '🐅 Puli' : '🐐 Aadu';
-            
-            const playerCount = Object.keys(gameState.players || {}).length;
-            if (gameState.status === 'waiting') {
-                document.getElementById('statusText').textContent = 'Waiting for opponent... Share code: ' + roomId;
-            } else if (gameState.turn === playerRole) {
-                document.getElementById('statusText').textContent = 'Your turn da!';
+            document.getElementById('aaduCount').textContent = gameState.aaduPlaced || 0;
+
+            if (gameState.turn === playerRole) {
+                document.getElementById('statusText').textContent = 'Your turn da! 🎯';
             } else {
-                document.getElementById('statusText').textContent = 'Opponent turn...';
+                document.getElementById('statusText').textContent = 'Opponent turn... ⏳';
             }
         }
 
         async function handleCellClick(index) {
-            if (!gameState || gameState.turn!== playerRole) return;
-            
+            if (!gameState || gameState.turn!== playerRole || gameState.status!== 'playing') return;
+
             const newBoard = [...gameState.board];
-            
+
             if (playerRole === 'aadu' && gameState.aaduPlaced < 15) {
                 if (newBoard[index] === null) {
                     newBoard[index] = 'aadu';
                     await update(ref(db, 'rooms/' + roomId), {
                         board: newBoard,
                         turn: 'puli',
-                        aaduPlaced: gameState.aaduPlaced + 1
+                        aaduPlaced: (gameState.aaduPlaced || 0) + 1
                     });
                 }
                 return;
             }
-            
+
             if (selectedCell === null) {
                 if (newBoard[index] === playerRole) {
                     selectedCell = index;
@@ -271,6 +345,18 @@
             }
         }
 
+        window.copyCode = function() {
+            navigator.clipboard.writeText(roomId);
+            alert('Code copied da! ' + roomId);
+        }
+
+        window.cancelRoom = async function() {
+            if (roomId) {
+                await remove(ref(db, 'rooms/' + roomId));
+            }
+            location.reload();
+        }
+
         window.leaveRoom = async function() {
             if (roomId) {
                 await remove(ref(db, 'rooms/' + roomId + '/players/' + playerId));
@@ -279,7 +365,7 @@
         }
 
         window.addEventListener('beforeunload', () => {
-            if (roomId) {
+            if (roomId && playerId) {
                 remove(ref(db, 'rooms/' + roomId + '/players/' + playerId));
             }
         });
