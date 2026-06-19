@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Aadu Puli - Online Multiplayer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+       .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+       .subtitle { font-size: 0.9em; opacity: 0.8; margin-bottom: 20px; }
+       .menu-screen,.game-screen { display: none; }
+       .menu-screen.active,.game-screen.active { display: block; }
+        input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            background: #ff6b6b;
+            color: white;
+            transition: all 0.3s;
+        }
+        button:hover { background: #ff5252; transform: translateY(-2px); }
+        button:disabled { background: #666; cursor: not-allowed; transform: none; }
+       .room-code {
+            font-size: 2em;
+            font-weight: bold;
+            letter-spacing: 5px;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+       .status {
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 1.1em;
+        }
+       .board {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin: 20px auto;
+            max-width: 350px;
+        }
+       .cell {
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+       .cell:hover { background: rgba(255,255,255,0.3); }
+       .cell.puli { background: #ff6b6b; }
+       .cell.aadu { background: #51cf66; }
+       .cell.selected { box-shadow: 0 0 0 3px yellow; }
+       .info { display: flex; justify-content: space-between; margin: 15px 0; }
+       .info div { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; flex: 1; margin: 0 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐅 Aadu Puli 🐐</h1>
+        <p class="subtitle">Online Multiplayer</p>
+
+        <!-- Menu Screen -->
+        <div class="menu-screen active" id="menuScreen">
+            <button onclick="createRoom()">Create Room</button>
+            <input type="text" id="joinCode" placeholder="ENTER ROOM CODE" maxlength="6">
+            <button onclick="joinRoom()">Join Room</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="game-screen" id="gameScreen">
+            <div class="room-code" id="roomCodeDisplay">------</div>
+            <div class="status" id="statusText">Waiting for player...</div>
+            <div class="info">
+                <div>You: <span id="yourRole">-</span></div>
+                <div>Turn: <span id="turnText">-</span></div>
+            </div>
+            <div class="board" id="board"></div>
+            <button onclick="leaveRoom()">Leave Room</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, onValue, update, remove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAFBQhNDokxJU1JLUEuvBfJdrTT9xy22-e8",
+            authDomain: "coins-8a917.firebaseapp.com",
+            databaseURL: "https://coins-8a917-default-rtdb.firebaseio.com",
+            projectId: "coins-8a917",
+            storageBucket: "coins-8a917.firebasestorage.app",
+            messagingSenderId: "1042852644756",
+            appId: "1:1042852644756:web:2759d89e5883d29a073181"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let roomId = null;
+        let playerId = 'player_' + Math.random().toString(36).substr(2, 9);
+        let playerRole = null;
+        let gameState = null;
+        let selectedCell = null;
+
+        window.createRoom = async function() {
+            roomId = Math.random().toString(36).substr(2, 6).toUpperCase();
+            playerRole = 'puli';
+            
+            const initialState = {
+                board: Array(49).fill(null),
+                turn: 'puli',
+                players: {
+                    [playerId]: { role: 'puli', joined: Date.now() }
+                },
+                status: 'waiting',
+                aaduPlaced: 0
+            };
+            initialState.board[0] = 'puli';
+            initialState.board[6] = 'puli';
+            initialState.board[42] = 'puli';
+
+            await set(ref(db, 'rooms/' + roomId), initialState);
+            startGame();
+        }
+
+        window.joinRoom = async function() {
+            const code = document.getElementById('joinCode').value.trim().toUpperCase();
+            if (code.length!== 6) {
+                alert('Enter 6 digit code da');
+                return;
+            }
+            
+            roomId = code;
+            playerRole = 'aadu';
+            
+            const roomRef = ref(db, 'rooms/' + roomId);
+            await update(roomRef, {
+                [`players/${playerId}`]: { role: 'aadu', joined: Date.now() },
+                status: 'playing'
+            });
+            
+            startGame();
+        }
+
+        function startGame() {
+            document.getElementById('menuScreen').classList.remove('active');
+            document.getElementById('gameScreen').classList.add('active');
+            document.getElementById('roomCodeDisplay').textContent = roomId;
+            document.getElementById('yourRole').textContent = playerRole === 'puli'? '🐅 Puli' : '🐐 Aadu';
+            
+            onValue(ref(db, 'rooms/' + roomId), (snapshot) => {
+                gameState = snapshot.val();
+                if (!gameState) {
+                    alert('Room closed da');
+                    location.reload();
+                    return;
+                }
+                renderGame();
+            });
+        }
+
+        function renderGame() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            
+            for (let i = 0; i < 49; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+                
+                if (gameState.board[i] === 'puli') {
+                    cell.classList.add('puli');
+                    cell.textContent = '🐅';
+                } else if (gameState.board[i] === 'aadu') {
+                    cell.classList.add('aadu');
+                    cell.textContent = '🐐';
+                }
+                
+                if (selectedCell === i) cell.classList.add('selected');
+                cell.onclick = () => handleCellClick(i);
+                boardEl.appendChild(cell);
+            }
+
+            document.getElementById('turnText').textContent = gameState.turn === 'puli'? '🐅 Puli' : '🐐 Aadu';
+            
+            const playerCount = Object.keys(gameState.players || {}).length;
+            if (gameState.status === 'waiting') {
+                document.getElementById('statusText').textContent = 'Waiting for opponent... Share code: ' + roomId;
+            } else if (gameState.turn === playerRole) {
+                document.getElementById('statusText').textContent = 'Your turn da!';
+            } else {
+                document.getElementById('statusText').textContent = 'Opponent turn...';
+            }
+        }
+
+        async function handleCellClick(index) {
+            if (!gameState || gameState.turn!== playerRole) return;
+            
+            const newBoard = [...gameState.board];
+            
+            if (playerRole === 'aadu' && gameState.aaduPlaced < 15) {
+                if (newBoard[index] === null) {
+                    newBoard[index] = 'aadu';
+                    await update(ref(db, 'rooms/' + roomId), {
+                        board: newBoard,
+                        turn: 'puli',
+                        aaduPlaced: gameState.aaduPlaced + 1
+                    });
+                }
+                return;
+            }
+            
+            if (selectedCell === null) {
+                if (newBoard[index] === playerRole) {
+                    selectedCell = index;
+                    renderGame();
+                }
+            } else {
+                if (newBoard[index] === null) {
+                    newBoard[index] = playerRole;
+                    newBoard[selectedCell] = null;
+                    await update(ref(db, 'rooms/' + roomId), {
+                        board: newBoard,
+                        turn: playerRole === 'puli'? 'aadu' : 'puli'
+                    });
+                }
+                selectedCell = null;
+                renderGame();
+            }
+        }
+
+        window.leaveRoom = async function() {
+            if (roomId) {
+                await remove(ref(db, 'rooms/' + roomId + '/players/' + playerId));
+            }
+            location.reload();
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (roomId) {
+                remove(ref(db, 'rooms/' + roomId + '/players/' + playerId));
+            }
+        });
+    </script>
+</body>
+</html>
