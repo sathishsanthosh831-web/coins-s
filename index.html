@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Aadu Puli - Online Multiplayer</title>
+    <title>Aadu Puli - Online Multiplayer V2</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -17,7 +16,7 @@
             color: white;
             padding: 20px;
         }
-      .container {
+     .container {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
@@ -27,10 +26,10 @@
             text-align: center;
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
-        h1 { font-size: 2.2em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-      .subtitle { font-size: 0.9em; opacity: 0.8; margin-bottom: 20px; }
-      .menu-screen,.game-screen,.waiting-screen { display: none; }
-      .menu-screen.active,.game-screen.active,.waiting-screen.active { display: block; }
+        h1 { font-size: 2.2em; margin-bottom: 10px; }
+     .subtitle { font-size: 0.9em; opacity: 0.8; margin-bottom: 20px; }
+     .menu-screen,.game-screen,.waiting-screen { display: none; }
+     .menu-screen.active,.game-screen.active,.waiting-screen.active { display: block; }
         input {
             width: 100%;
             padding: 15px;
@@ -56,10 +55,10 @@
             transition: all 0.3s;
         }
         button:hover { background: #ff5252; transform: translateY(-2px); }
-        button:disabled { background: #666; cursor: not-allowed; transform: none; }
-      .btn-secondary { background: #4ecdc4; }
-      .btn-secondary:hover { background: #45b7b0; }
-      .room-code {
+        button:disabled { background: #666; cursor: not-allowed; }
+     .btn-secondary { background: #4ecdc4; }
+     .btn-secondary:hover { background: #45b7b0; }
+     .room-code {
             font-size: 2.5em;
             font-weight: bold;
             letter-spacing: 8px;
@@ -69,7 +68,7 @@
             margin: 20px 0;
             border: 2px dashed rgba(255,255,255,0.3);
         }
-      .status {
+     .status {
             padding: 15px;
             background: rgba(0,0,0,0.2);
             border-radius: 10px;
@@ -80,18 +79,18 @@
             align-items: center;
             justify-content: center;
         }
-      .info-box { display: flex; justify-content: space-between; margin: 15px 0; gap: 10px; }
-      .info-item { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; flex: 1; }
-      .info-label { font-size: 0.8em; opacity: 0.7; margin-bottom: 5px; }
-      .info-value { font-size: 1.3em; font-weight: bold; }
-      .board {
+     .info-box { display: flex; justify-content: space-between; margin: 15px 0; gap: 10px; }
+     .info-item { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; flex: 1; }
+     .info-label { font-size: 0.8em; opacity: 0.7; margin-bottom: 5px; }
+     .info-value { font-size: 1.3em; font-weight: bold; }
+     .board {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 5px;
             margin: 20px auto;
             max-width: 350px;
         }
-      .cell {
+     .cell {
             aspect-ratio: 1;
             background: rgba(255,255,255,0.15);
             border-radius: 8px;
@@ -103,12 +102,11 @@
             transition: all 0.2s;
             border: 2px solid transparent;
         }
-      .cell:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
-      .cell.puli { background: #ff6b6b; }
-      .cell.aadu { background: #51cf66; }
-      .cell.selected { border-color: #ffd700; box-shadow: 0 0 15px #ffd700; }
-      .cell.highlight { background: rgba(255, 215, 0, 0.3); }
-      .copy-btn {
+     .cell:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+     .cell.puli { background: #ff6b6b; }
+     .cell.aadu { background: #51cf66; }
+     .cell.selected { border-color: #ffd700; box-shadow: 0 0 15px #ffd700; }
+     .copy-btn {
             background: rgba(255,255,255,0.2);
             font-size: 0.9em;
             padding: 10px;
@@ -119,9 +117,8 @@
 <body>
     <div class="container">
         <h1>🐅 Aadu Puli 🐐</h1>
-        <p class="subtitle">Online Multiplayer - V2</p>
+        <p class="subtitle">Online Multiplayer V2 - Firebase</p>
 
-        <!-- Menu Screen -->
         <div class="menu-screen active" id="menuScreen">
             <button onclick="createRoom()">🎮 Create Room</button>
             <div style="margin: 20px 0; opacity: 0.5;">OR</div>
@@ -129,15 +126,13 @@
             <button class="btn-secondary" onclick="joinRoom()">🚪 Join Room</button>
         </div>
 
-        <!-- Waiting Screen -->
         <div class="waiting-screen" id="waitingScreen">
             <div class="room-code" id="roomCodeDisplay">------</div>
-            <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+            <button class="copy-btn" onclick="copyCode()">📋 Copy Code & Send to Friend</button>
             <div class="status" id="waitingStatus">Waiting for player to join...</div>
             <button class="btn-secondary" onclick="cancelRoom()">Cancel</button>
         </div>
 
-        <!-- Game Screen -->
         <div class="game-screen" id="gameScreen">
             <div class="info-box">
                 <div class="info-item">
@@ -148,6 +143,7 @@
                     <div class="info-label">Turn</div>
                     <div class="info-value" id="turnText">-</div>
                 </div>
+            </div>
             <div class="status" id="statusText">Game Starting...</div>
             <div class="board" id="board"></div>
             <div class="info-box">
@@ -159,6 +155,7 @@
                     <div class="info-label">Room</div>
                     <div class="info-value" id="roomDisplay">-</div>
                 </div>
+            </div>
             <button onclick="leaveRoom()">🚪 Leave Room</button>
         </div>
     </div>
@@ -193,79 +190,50 @@
             const initialState = {
                 board: Array(49).fill(null),
                 turn: 'puli',
-                players: {
-                    [playerId]: { role: 'puli', joined: Date.now() }
-                },
+                players: { [playerId]: { role: 'puli', joined: Date.now() } },
                 status: 'waiting',
-                aaduPlaced: 0,
-                createdAt: Date.now()
+                aaduPlaced: 0
             };
             initialState.board[0] = 'puli';
             initialState.board[6] = 'puli';
             initialState.board[42] = 'puli';
 
             await set(ref(db, 'rooms/' + roomId), initialState);
-
             document.getElementById('menuScreen').classList.remove('active');
             document.getElementById('waitingScreen').classList.add('active');
             document.getElementById('roomCodeDisplay').textContent = roomId;
-
             listenToRoom();
         }
 
         window.joinRoom = async function() {
             const code = document.getElementById('joinCode').value.trim().toUpperCase();
-            if (code.length!== 6) {
-                alert('Enter 6 digit code da');
-                return;
-            }
+            if (code.length!== 6) { alert('Enter 6 digit code da'); return; }
 
             const roomRef = ref(db, 'rooms/' + code);
             const snapshot = await get(roomRef);
-
-            if (!snapshot.exists()) {
-                alert('Room not found da! Check code');
-                return;
-            }
-
-            const data = snapshot.val();
-            if (Object.keys(data.players || {}).length >= 2) {
-                alert('Room full da!');
-                return;
-            }
+            if (!snapshot.exists()) { alert('Room not found da!'); return; }
+            if (Object.keys(snapshot.val().players || {}).length >= 2) { alert('Room full da!'); return; }
 
             roomId = code;
             playerRole = 'aadu';
-
             await update(roomRef, {
                 [`players/${playerId}`]: { role: 'aadu', joined: Date.now() },
                 status: 'playing'
             });
-
             startGame();
         }
 
         function listenToRoom() {
             onValue(ref(db, 'rooms/' + roomId), (snapshot) => {
                 gameState = snapshot.val();
-                if (!gameState) {
-                    alert('Room closed da');
-                    location.reload();
-                    return;
-                }
-
-                const playerCount = Object.keys(gameState.players || {}).length;
-
-                if (gameState.status === 'waiting' && playerCount >= 2) {
+                if (!gameState) { alert('Room closed da'); location.reload(); return; }
+                if (gameState.status === 'waiting' && Object.keys(gameState.players || {}).length >= 2) {
                     document.getElementById('waitingScreen').classList.remove('active');
                     document.getElementById('gameScreen').classList.add('active');
                     document.getElementById('roomDisplay').textContent = roomId;
                     document.getElementById('yourRole').textContent = playerRole === 'puli'? '🐅 Puli' : '🐐 Aadu';
                 }
-
-                if (gameState.status === 'playing') {
-                    renderGame();
-                }
+                if (gameState.status === 'playing') renderGame();
             });
         }
 
@@ -280,40 +248,23 @@
         function renderGame() {
             const boardEl = document.getElementById('board');
             boardEl.innerHTML = '';
-
             for (let i = 0; i < 49; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
-                cell.dataset.index = i;
-
-                if (gameState.board[i] === 'puli') {
-                    cell.classList.add('puli');
-                    cell.textContent = '🐅';
-                } else if (gameState.board[i] === 'aadu') {
-                    cell.classList.add('aadu');
-                    cell.textContent = '🐐';
-                }
-
+                if (gameState.board[i] === 'puli') { cell.classList.add('puli'); cell.textContent = '🐅'; }
+                else if (gameState.board[i] === 'aadu') { cell.classList.add('aadu'); cell.textContent = '🐐'; }
                 if (selectedCell === i) cell.classList.add('selected');
                 cell.onclick = () => handleCellClick(i);
                 boardEl.appendChild(cell);
             }
-
             document.getElementById('turnText').textContent = gameState.turn === 'puli'? '🐅 Puli' : '🐐 Aadu';
             document.getElementById('aaduCount').textContent = gameState.aaduPlaced || 0;
-
-            if (gameState.turn === playerRole) {
-                document.getElementById('statusText').textContent = 'Your turn da! 🎯';
-            } else {
-                document.getElementById('statusText').textContent = 'Opponent turn... ⏳';
-            }
+            document.getElementById('statusText').textContent = gameState.turn === playerRole? 'Your turn da! 🎯' : 'Opponent turn... ⏳';
         }
 
         async function handleCellClick(index) {
             if (!gameState || gameState.turn!== playerRole || gameState.status!== 'playing') return;
-
             const newBoard = [...gameState.board];
-
             if (playerRole === 'aadu' && gameState.aaduPlaced < 15) {
                 if (newBoard[index] === null) {
                     newBoard[index] = 'aadu';
@@ -325,12 +276,8 @@
                 }
                 return;
             }
-
             if (selectedCell === null) {
-                if (newBoard[index] === playerRole) {
-                    selectedCell = index;
-                    renderGame();
-                }
+                if (newBoard[index] === playerRole) { selectedCell = index; renderGame(); }
             } else {
                 if (newBoard[index] === null) {
                     newBoard[index] = playerRole;
@@ -347,27 +294,18 @@
 
         window.copyCode = function() {
             navigator.clipboard.writeText(roomId);
-            alert('Code copied da! ' + roomId);
+            alert('Code copied da! ' + roomId + ' - Idha friend ku anupu');
         }
-
         window.cancelRoom = async function() {
-            if (roomId) {
-                await remove(ref(db, 'rooms/' + roomId));
-            }
+            if (roomId) await remove(ref(db, 'rooms/' + roomId));
             location.reload();
         }
-
         window.leaveRoom = async function() {
-            if (roomId) {
-                await remove(ref(db, 'rooms/' + roomId + '/players/' + playerId));
-            }
+            if (roomId) await remove(ref(db, 'rooms/' + roomId + '/players/' + playerId));
             location.reload();
         }
-
         window.addEventListener('beforeunload', () => {
-            if (roomId && playerId) {
-                remove(ref(db, 'rooms/' + roomId + '/players/' + playerId));
-            }
+            if (roomId && playerId) remove(ref(db, 'rooms/' + roomId + '/players/' + playerId));
         });
     </script>
 </body>
